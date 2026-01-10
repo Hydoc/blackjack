@@ -16,7 +16,7 @@ func TestNewPlayer(t *testing.T) {
 		WithName("Test"),
 	)
 
-	wantHands := NewHands(cards, bet)
+	wantHands := newHands(cards, bet)
 
 	if p.Name != "Test" {
 		t.Errorf("name should be Test")
@@ -38,7 +38,7 @@ func TestPlayer_Hit(t *testing.T) {
 		{
 			name: "with first hand active",
 			setup: func() *Player {
-				firstHand := NewHand([]deck.Card{
+				firstHand := newHand([]deck.Card{
 					{
 						Suit: deck.Heart,
 						Rank: deck.Ace,
@@ -49,10 +49,10 @@ func TestPlayer_Hit(t *testing.T) {
 					},
 				}, 200, true)
 				return &Player{
-					hands: &Hands{
+					hands: &hands{
 						first:  firstHand,
-						second: NewHand(make([]deck.Card, 0), 0, false),
-						Active: firstHand,
+						second: newHand(make([]deck.Card, 0), 0, false),
+						active: firstHand,
 					},
 				}
 			},
@@ -79,7 +79,7 @@ func TestPlayer_Hit(t *testing.T) {
 		{
 			name: "with second hand active",
 			setup: func() *Player {
-				secondHand := NewHand([]deck.Card{
+				secondHand := newHand([]deck.Card{
 					{
 						Suit: deck.Heart,
 						Rank: deck.Ace,
@@ -90,10 +90,10 @@ func TestPlayer_Hit(t *testing.T) {
 					},
 				}, 3, true)
 				return &Player{
-					hands: &Hands{
-						first:  NewHand(make([]deck.Card, 0), 200, false),
+					hands: &hands{
+						first:  newHand(make([]deck.Card, 0), 200, false),
 						second: secondHand,
-						Active: secondHand,
+						active: secondHand,
 					},
 				}
 			},
@@ -139,50 +139,50 @@ func TestPlayer_Halt(t *testing.T) {
 	tests := []struct {
 		name           string
 		player         *Player
-		wantFirstHand  *Hand
-		wantSecondHand *Hand
+		wantFirstHand  *hand
+		wantSecondHand *hand
 	}{
 		{
 			name: "with first hand active and normal mode",
 			player: &Player{
-				hands: &Hands{
-					Mode:   normal,
-					first:  &Hand{isActive: true},
-					second: &Hand{isActive: false},
+				hands: &hands{
+					mode:   normal,
+					first:  &hand{isActive: true},
+					second: &hand{isActive: false},
 				},
 			},
-			wantFirstHand:  &Hand{isActive: false},
-			wantSecondHand: &Hand{isActive: false},
+			wantFirstHand:  &hand{isActive: false},
+			wantSecondHand: &hand{isActive: false},
 		},
 		{
 			name: "with first hand active and split mode",
 			player: &Player{
-				hands: &Hands{
-					Mode:   split,
-					first:  &Hand{isActive: true},
-					second: &Hand{isActive: false},
+				hands: &hands{
+					mode:   split,
+					first:  &hand{isActive: true},
+					second: &hand{isActive: false},
 				},
 			},
-			wantFirstHand:  &Hand{isActive: false},
-			wantSecondHand: &Hand{isActive: true},
+			wantFirstHand:  &hand{isActive: false},
+			wantSecondHand: &hand{isActive: true},
 		},
 		{
 			name: "with second hand active and split mode",
 			player: &Player{
-				hands: &Hands{
-					Mode:   split,
-					first:  &Hand{isActive: false},
-					second: &Hand{isActive: true},
+				hands: &hands{
+					mode:   split,
+					first:  &hand{isActive: false},
+					second: &hand{isActive: true},
 				},
 			},
-			wantFirstHand:  &Hand{isActive: false},
-			wantSecondHand: &Hand{isActive: false},
+			wantFirstHand:  &hand{isActive: false},
+			wantSecondHand: &hand{isActive: false},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.player.Halt()
+			tt.player.Stand()
 
 			if !reflect.DeepEqual(tt.wantFirstHand, tt.player.hands.first) {
 				t.Errorf("want %#v, got %#v", tt.wantFirstHand, tt.player.hands.first)

@@ -9,23 +9,26 @@ const (
 	split
 )
 
+// Player represents one player in the game.
 type Player struct {
 	Name string
 
-	hands *Hands
+	hands *hands
 }
 
+// Hit adds a card to the player's active hand.
 func (p *Player) Hit(card deck.Card) {
-	p.hands.Hit(card)
+	p.hands.hit(card)
 }
 
-func (p *Player) Halt() {
-	p.hands.Halt()
+// Stand
+func (p *Player) Stand() {
+	p.hands.halt()
 }
 
 func NewPlayer(cards []deck.Card, bet int, opts ...func(p *Player) *Player) *Player {
 	p := &Player{
-		hands: NewHands(cards, bet),
+		hands: newHands(cards, bet),
 	}
 
 	for _, opt := range opts {

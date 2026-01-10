@@ -2,56 +2,52 @@ package blackjack
 
 import "github.com/Hydoc/deck"
 
-type Hands struct {
-	Mode Mode
-
-	first  *Hand
-	second *Hand
-	Active *Hand
+type hands struct {
+	mode   Mode
+	first  *hand
+	second *hand
+	active *hand
 }
 
-func (h *Hands) Hit(card deck.Card) {
-	h.Active.cards = append(h.Active.cards, card)
+func (h *hands) hit(card deck.Card) {
+	h.active.cards = append(h.active.cards, card)
 }
 
-func (h *Hands) Halt() {
+func (h *hands) halt() {
 	if h.first.isActive {
 		h.first.isActive = false
-		h.Active = nil
+		h.active = nil
 
-		if h.Mode == split {
+		if h.mode == split {
 			h.second.isActive = true
-			h.Active = h.second
+			h.active = h.second
 		}
 	} else if h.second.isActive {
 		h.second.isActive = false
-		h.Active = nil
+		h.active = nil
 	}
 }
 
-type Hand struct {
+type hand struct {
 	cards    []deck.Card
 	isActive bool
 	bet      int
 }
 
-func NewHand(cards []deck.Card, bet int, isActive bool) *Hand {
-	return &Hand{
+func newHand(cards []deck.Card, bet int, isActive bool) *hand {
+	return &hand{
 		cards:    cards,
 		isActive: isActive,
 		bet:      bet,
 	}
 }
 
-// NewHands creates a pointer to the Hands struct.
-// It initializes the first one and nils the second one.
-// The second hand is only relevant when splitting.
-func NewHands(cards []deck.Card, bet int) *Hands {
-	first := NewHand(cards, bet, true)
-	return &Hands{
-		Mode:   normal,
+func newHands(cards []deck.Card, bet int) *hands {
+	first := newHand(cards, bet, true)
+	return &hands{
+		mode:   normal,
 		first:  first,
 		second: nil,
-		Active: first,
+		active: first,
 	}
 }
