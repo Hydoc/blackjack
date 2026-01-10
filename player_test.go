@@ -16,7 +16,7 @@ func TestNewPlayer(t *testing.T) {
 		WithName("Test"),
 	)
 
-	wantHands := newHands(cards, bet)
+	wantHands := newHands(cards, withBet(bet))
 
 	if p.Name != "Test" {
 		t.Errorf("name should be Test")
@@ -47,11 +47,11 @@ func TestPlayer_Hit(t *testing.T) {
 						Suit: deck.Spade,
 						Rank: deck.Two,
 					},
-				}, 200, true)
+				}, true)
 				return &Player{
 					hands: &hands{
 						first:  firstHand,
-						second: newHand(make([]deck.Card, 0), 0, false),
+						second: newHand(make([]deck.Card, 0), false),
 						active: firstHand,
 					},
 				}
@@ -88,10 +88,10 @@ func TestPlayer_Hit(t *testing.T) {
 						Suit: deck.Spade,
 						Rank: deck.Two,
 					},
-				}, 3, true)
+				}, true)
 				return &Player{
 					hands: &hands{
-						first:  newHand(make([]deck.Card, 0), 200, false),
+						first:  newHand(make([]deck.Card, 0), false),
 						second: secondHand,
 						active: secondHand,
 					},

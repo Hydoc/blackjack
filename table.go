@@ -13,6 +13,7 @@ type Table struct {
 // New create a pointer to Table with the default configuration like 6 shuffled decks.
 func New() *Table {
 	return &Table{
+		dealer:  NewPlayer(make([]deck.Card, 0), 0, WithName("Dealer")),
 		players: [7]*Player{},
 		deck: deck.New(
 			deck.WithDecks(6),

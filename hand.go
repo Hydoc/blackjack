@@ -34,20 +34,30 @@ type hand struct {
 	bet      int
 }
 
-func newHand(cards []deck.Card, bet int, isActive bool) *hand {
-	return &hand{
+func newHand(cards []deck.Card, isActive bool, opts ...func(*hand) *hand) *hand {
+	h := &hand{
 		cards:    cards,
 		isActive: isActive,
-		bet:      bet,
 	}
+	for _, opt := range opts {
+		opt(h)
+	}
+	return h
 }
 
-func newHands(cards []deck.Card, bet int) *hands {
-	first := newHand(cards, bet, true)
+func newHands(cards []deck.Card, opts ...func(*hand) *hand) *hands {
+	first := newHand(cards, true, opts...)
 	return &hands{
 		mode:   normal,
 		first:  first,
 		second: nil,
 		active: first,
+	}
+}
+
+func withBet(bet int) func(*hand) *hand {
+	return func(hand *hand) *hand {
+		hand.bet = bet
+		return hand
 	}
 }

@@ -32,7 +32,7 @@ func (p *Player) Stand() {
 // NewPlayer creates a pointer to the new player with the passed configuration.
 func NewPlayer(cards []deck.Card, bet int, opts ...func(p *Player) *Player) *Player {
 	p := &Player{
-		hands: newHands(cards, bet),
+		hands: newHands(cards, withBet(bet)),
 	}
 
 	for _, opt := range opts {

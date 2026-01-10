@@ -12,17 +12,17 @@ func TestNewHands(t *testing.T) {
 		{Rank: deck.Ten, Suit: deck.Spade},
 		{Rank: deck.Two, Suit: deck.Heart},
 	}
-	hands := newHands(cards, 200)
+	h := newHands(cards, withBet(200))
 
-	if hands.mode != normal {
-		t.Errorf("want %#v, got %#v", normal, hands.mode)
+	if h.mode != normal {
+		t.Errorf("want %#v, got %#v", normal, h.mode)
 	}
 
-	if hands.second != nil {
+	if h.second != nil {
 		t.Error("want second hand to be nil")
 	}
 
-	if !reflect.DeepEqual(hands.first, hands.active) {
+	if !reflect.DeepEqual(h.first, h.active) {
 		t.Error("first and active hand should be the same")
 	}
 }
@@ -32,22 +32,22 @@ func TestHands_Hit(t *testing.T) {
 		{Rank: deck.Ten, Suit: deck.Spade},
 		{Rank: deck.Two, Suit: deck.Heart},
 	}
-	hands := newHands(cards, 200)
+	h := newHands(cards)
 	cardToHit := deck.Card{Rank: deck.Five, Suit: deck.Club}
 	want := append(append([]deck.Card{}, cards...), cardToHit)
 
-	hands.hit(cardToHit)
+	h.hit(cardToHit)
 
-	if !reflect.DeepEqual(hands.first, hands.active) {
+	if !reflect.DeepEqual(h.first, h.active) {
 		t.Error("first and active hand should be the same")
 	}
 
-	if !reflect.DeepEqual(want, hands.first.cards) {
-		t.Errorf("want %#v, got %#v", want, hands.first.cards)
+	if !reflect.DeepEqual(want, h.first.cards) {
+		t.Errorf("want %#v, got %#v", want, h.first.cards)
 	}
 
-	if !reflect.DeepEqual(want, hands.active.cards) {
-		t.Errorf("want %#v, got %#v", want, hands.active.cards)
+	if !reflect.DeepEqual(want, h.active.cards) {
+		t.Errorf("want %#v, got %#v", want, h.active.cards)
 	}
 }
 
