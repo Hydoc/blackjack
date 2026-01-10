@@ -1,0 +1,11 @@
+version: "3"
+
+tasks:
+  check:
+    desc: Run code quality tools
+    cmds:
+      - go mod tidy -diff
+      - go mod verify
+      - go vet ./...
+      - go tool staticcheck ./...
+      - go test -race -vet=off ./...
