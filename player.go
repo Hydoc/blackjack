@@ -16,6 +16,11 @@ type Player struct {
 	hands *hands
 }
 
+// CanSplit returns a bool whether the player can split.
+func (p *Player) CanSplit() bool {
+	return p.hands.canSplit()
+}
+
 // Hit adds a card to the player's active hand.
 func (p *Player) Hit(card deck.Card) {
 	p.hands.hit(card)

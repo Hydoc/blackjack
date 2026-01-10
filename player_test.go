@@ -27,6 +27,66 @@ func TestNewPlayer(t *testing.T) {
 	}
 }
 
+func TestPlayer_CanSplit(t *testing.T) {
+	tests := []struct {
+		name   string
+		player *Player
+		want   bool
+	}{
+		{
+			name: "can split",
+			player: &Player{
+				hands: &hands{
+					active: &hand{
+						cards: []deck.Card{
+							{Rank: deck.Ten, Suit: deck.Spade},
+							{Rank: deck.Ten, Suit: deck.Heart},
+						},
+					},
+				},
+			},
+			want: true,
+		},
+		{
+			name: "can not split with different ranks",
+			player: &Player{
+				hands: &hands{
+					active: &hand{
+						cards: []deck.Card{
+							{Rank: deck.Two, Suit: deck.Spade},
+							{Rank: deck.Three, Suit: deck.Heart},
+						},
+					},
+				},
+			},
+			want: false,
+		},
+		{
+			name: "can not split with more than two cards",
+			player: &Player{
+				hands: &hands{
+					active: &hand{
+						cards: []deck.Card{
+							{Rank: deck.Two, Suit: deck.Spade},
+							{Rank: deck.Two, Suit: deck.Heart},
+							{Rank: deck.Three, Suit: deck.Heart},
+						},
+					},
+				},
+			},
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.player.CanSplit(); got != tt.want {
+				t.Errorf("want %#v, got %#v", tt.want, got)
+			}
+		})
+	}
+}
+
 func TestPlayer_Hit(t *testing.T) {
 	tests := []struct {
 		name                string
