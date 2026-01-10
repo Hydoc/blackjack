@@ -1,6 +1,15 @@
 package blackjack
 
-import "github.com/Hydoc/deck"
+import (
+	"errors"
+	"slices"
+
+	"github.com/Hydoc/deck"
+)
+
+var (
+	ErrSplitNotAllowed = errors.New("can't split")
+)
 
 type hands struct {
 	mode   Mode
@@ -28,10 +37,48 @@ func (h *hands) stand() {
 	}
 }
 
+func (h *hands) canSplit() bool {
+	return h.active.canSplit()
+}
+
 type hand struct {
 	cards    []deck.Card
 	isActive bool
 	bet      int
+}
+
+func (h *hand) split() (*hands, error) {
+	if !h.canSplit() {
+		return nil, ErrSplitNotAllowed
+	}
+
+	return newSplitHands(h.cards[0], h.cards[1], h.bet), nil
+}
+
+func (h *hand) canSplit() bool {
+	return len(h.cards) == 2 && h.cards[0].Rank == h.cards[1].Rank
+}
+
+func (h *hand) sum() int {
+	sum := 0
+
+	for _, card := range h.cards {
+		if card.Rank == deck.Jack || card.Rank == deck.Queen || card.Rank == deck.King {
+			sum += 10
+		} else {
+			sum += int(card.Rank)
+		}
+	}
+
+	hasAce := slices.ContainsFunc(h.cards, func(card deck.Card) bool {
+		return card.Rank == deck.Ace
+	})
+
+	if sum < 21 && hasAce {
+		sum += 10
+	}
+
+	return sum
 }
 
 func newHand(cards []deck.Card, isActive bool, opts ...func(*hand) *hand) *hand {
@@ -43,6 +90,18 @@ func newHand(cards []deck.Card, isActive bool, opts ...func(*hand) *hand) *hand 
 		opt(h)
 	}
 	return h
+}
+
+func newSplitHands(first deck.Card, second deck.Card, previousBet int) *hands {
+	f := newHand([]deck.Card{first}, true, withBet(previousBet))
+	s := newHand([]deck.Card{second}, false, withBet(previousBet))
+
+	return &hands{
+		mode:   split,
+		first:  f,
+		second: s,
+		active: f,
+	}
 }
 
 func newHands(cards []deck.Card, opts ...func(*hand) *hand) *hands {

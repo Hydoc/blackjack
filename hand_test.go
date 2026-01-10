@@ -1,6 +1,7 @@
 package blackjack
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 
@@ -27,7 +28,7 @@ func TestNewHands(t *testing.T) {
 	}
 }
 
-func TestHands_Hit(t *testing.T) {
+func TestHands_hit(t *testing.T) {
 	cards := []deck.Card{
 		{Rank: deck.Ten, Suit: deck.Spade},
 		{Rank: deck.Two, Suit: deck.Heart},
@@ -51,7 +52,7 @@ func TestHands_Hit(t *testing.T) {
 	}
 }
 
-func TestHands_Halt(t *testing.T) {
+func TestHands_stand(t *testing.T) {
 	tests := []struct {
 		name           string
 		hands          *hands
@@ -107,5 +108,146 @@ func TestHands_Halt(t *testing.T) {
 			}
 		})
 
+	}
+}
+
+func TestHands_canSplit(t *testing.T) {
+	tests := []struct {
+		name  string
+		want  bool
+		cards []deck.Card
+	}{
+		{
+			name: "can split",
+			want: true,
+			cards: []deck.Card{
+				{Rank: deck.Ten, Suit: deck.Spade},
+				{Rank: deck.Ten, Suit: deck.Heart},
+			},
+		},
+		{
+			name: "can not split with different ranks",
+			want: false,
+			cards: []deck.Card{
+				{Rank: deck.Two, Suit: deck.Spade},
+				{Rank: deck.Three, Suit: deck.Heart},
+			},
+		},
+		{
+			name: "can not split with more than two cards",
+			want: false,
+			cards: []deck.Card{
+				{Rank: deck.Two, Suit: deck.Spade},
+				{Rank: deck.Two, Suit: deck.Heart},
+				{Rank: deck.Three, Suit: deck.Heart},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := &hands{
+				active: newHand(tt.cards, true),
+			}
+
+			if got := h.canSplit(); got != tt.want {
+				t.Errorf("want %#v, got %#v", tt.want, got)
+			}
+		})
+	}
+}
+
+func TestHand_split(t *testing.T) {
+	tests := []struct {
+		name      string
+		hand      *hand
+		wantErr   error
+		wantHands *hands
+	}{
+		{
+			name: "split correctly",
+			hand: &hand{
+				cards: []deck.Card{
+					{Rank: deck.Ten, Suit: deck.Spade},
+					{Rank: deck.Ten, Suit: deck.Heart},
+				},
+				bet: 100,
+			},
+			wantHands: newSplitHands(
+				deck.Card{Rank: deck.Ten, Suit: deck.Spade},
+				deck.Card{Rank: deck.Ten, Suit: deck.Heart},
+				100,
+			),
+		},
+		{
+			name: "splitting not allowed",
+			hand: &hand{
+				cards: []deck.Card{
+					{Rank: deck.Ten, Suit: deck.Spade},
+					{Rank: deck.Nine, Suit: deck.Heart},
+				},
+				bet: 100,
+			},
+			wantErr: ErrSplitNotAllowed,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h, err := tt.hand.split()
+
+			if !errors.Is(err, tt.wantErr) {
+				t.Errorf("want %#v, got %#v", tt.wantErr, err)
+			}
+
+			if !reflect.DeepEqual(h, tt.wantHands) {
+				t.Errorf("want %#v, got %#v", tt.wantHands, h)
+			}
+		})
+	}
+}
+
+func TestHand_sum(t *testing.T) {
+	tests := []struct {
+		name  string
+		cards []deck.Card
+		want  int
+	}{
+		{
+			name: "queen, jack and ace",
+			cards: []deck.Card{
+				{Rank: deck.Queen, Suit: deck.Spade},
+				{Rank: deck.Jack, Suit: deck.Heart},
+				{Rank: deck.Ace, Suit: deck.Club},
+			},
+			want: 21,
+		},
+		{
+			name: "two and three",
+			cards: []deck.Card{
+				{Rank: deck.Two, Suit: deck.Spade},
+				{Rank: deck.Three, Suit: deck.Heart},
+			},
+			want: 5,
+		},
+		{
+			name: "single ace",
+			cards: []deck.Card{
+				{Rank: deck.Ace, Suit: deck.Spade},
+			},
+			want: 11,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := &hand{
+				cards: tt.cards,
+			}
+
+			if got := h.sum(); got != tt.want {
+				t.Errorf("want %#v, got %#v", tt.want, got)
+			}
+		})
 	}
 }

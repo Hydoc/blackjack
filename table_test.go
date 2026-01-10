@@ -1,6 +1,7 @@
 package blackjack
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 
@@ -39,7 +40,6 @@ func TestTable_Join(t *testing.T) {
 			playerToJoin:   NewPlayer(make([]deck.Card, 0), 0, WithName("Player1")),
 			playersAtTable: [7]*Player{},
 			wantIndex:      0,
-			wantErr:        nil,
 		},
 		{
 			name:         "with players at table",
@@ -50,7 +50,6 @@ func TestTable_Join(t *testing.T) {
 				NewPlayer(make([]deck.Card, 0), 0, WithName("Player3")),
 			},
 			wantIndex: 3,
-			wantErr:   nil,
 		},
 		{
 			name:         "error when table is full",
@@ -76,14 +75,11 @@ func TestTable_Join(t *testing.T) {
 
 			err := table.Join(tt.playerToJoin)
 
-			if tt.wantErr != nil {
-				if !reflect.DeepEqual(err, tt.wantErr) {
-					t.Errorf("want error %#v, got %#v", tt.wantErr, err)
-				}
-			} else {
-				if err != nil {
-					t.Errorf("want no error, got %#v", err)
-				}
+			if !errors.Is(err, tt.wantErr) {
+				t.Errorf("want %#v, got %#v", tt.wantErr, err)
+			}
+
+			if tt.wantErr == nil {
 				if !reflect.DeepEqual(table.players[tt.wantIndex], tt.playerToJoin) {
 					t.Errorf("want %#v, got %#v", tt.playerToJoin, table.players[tt.wantIndex])
 				}
