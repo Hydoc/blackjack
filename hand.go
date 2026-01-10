@@ -13,7 +13,7 @@ func (h *hands) hit(card deck.Card) {
 	h.active.cards = append(h.active.cards, card)
 }
 
-func (h *hands) halt() {
+func (h *hands) stand() {
 	if h.first.isActive {
 		h.first.isActive = false
 		h.active = nil

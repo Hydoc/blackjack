@@ -96,7 +96,7 @@ func TestHands_Halt(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.hands.halt()
+			tt.hands.stand()
 
 			if !reflect.DeepEqual(tt.wantFirstHand, tt.hands.first) {
 				t.Errorf("want %#v, got %#v", tt.wantFirstHand, tt.hands.first)
