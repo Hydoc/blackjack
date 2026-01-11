@@ -316,3 +316,94 @@ func TestTable_Start(t *testing.T) {
 		}
 	})
 }
+
+func TestTable_nextPlayer(t *testing.T) {
+	tests := []struct {
+		name  string
+		setup func() (*Table, *Player)
+	}{
+		{
+			name: "correct player",
+			setup: func() (*Table, *Player) {
+				firstPlayer := &Player{}
+				secondPlayer := &Player{}
+				thirdPlayer := &Player{}
+
+				table := &Table{
+					players: [7]*Player{
+						firstPlayer,
+						secondPlayer,
+						thirdPlayer,
+					},
+					turnPlayer: firstPlayer,
+				}
+				return table, secondPlayer
+			},
+		},
+		{
+			name: "no next player for only one",
+			setup: func() (*Table, *Player) {
+				firstPlayer := &Player{}
+
+				table := &Table{
+					players: [7]*Player{
+						firstPlayer,
+					},
+					turnPlayer: firstPlayer,
+				}
+				return table, nil
+			},
+		},
+		{
+			name: "no next player for the last one",
+			setup: func() (*Table, *Player) {
+				firstPlayer := &Player{}
+				secondPlayer := &Player{}
+				thirdPlayer := &Player{}
+
+				table := &Table{
+					players: [7]*Player{
+						firstPlayer,
+						secondPlayer,
+						thirdPlayer,
+					},
+					turnPlayer: thirdPlayer,
+				}
+				return table, nil
+			},
+		},
+		{
+			name: "correct player for nil values in between",
+			setup: func() (*Table, *Player) {
+				firstPlayer := &Player{}
+				secondPlayer := &Player{}
+				thirdPlayer := &Player{}
+
+				table := &Table{
+					players: [7]*Player{
+						firstPlayer,
+						nil,
+						secondPlayer,
+						nil,
+						nil,
+						thirdPlayer,
+					},
+					turnPlayer: secondPlayer,
+				}
+				return table, thirdPlayer
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			table, wantPlayer := tt.setup()
+
+			p := table.nextPlayer()
+
+			if !reflect.DeepEqual(p, wantPlayer) {
+				t.Errorf("want %#v, got %#v", wantPlayer, p)
+			}
+		})
+	}
+}

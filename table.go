@@ -15,7 +15,8 @@ const (
 )
 
 var (
-	ErrTableFull = errors.New("table is full")
+	ErrTableFull    = errors.New("table is full")
+	ErrNoTurnPlayer = errors.New("no turn player")
 )
 
 // Table represents a blackjack table. It holds everything relevant for the game.
@@ -69,7 +70,25 @@ func (t *Table) IsDone() bool {
 	return t.gameState == done
 }
 
-func (t *Table) Handle() error {
+func (t *Table) Hit() error {
+	if t.turnPlayer == nil {
+		return ErrNoTurnPlayer
+	}
+
+	t.turnPlayer.Hit(t.drawCard())
+
+	if t.turnPlayer.busted() {
+		t.turnPlayer.Stand()
+
+		if t.turnPlayer.isDone() {
+			next := t.nextPlayer()
+			if next == nil {
+				t.gameState = done
+				return nil
+			}
+			t.turnPlayer = next
+		}
+	}
 	return nil
 }
 
@@ -99,6 +118,37 @@ func (t *Table) Leave(p *Player) {
 			return
 		}
 	}
+}
+
+func (t *Table) nextPlayer() *Player {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	if t.turnPlayer == t.players[len(t.players)-1] {
+		return nil
+	}
+
+	i := -1
+
+	// find the index of the turn player
+	for idx := range t.players {
+		if t.players[idx] == t.turnPlayer {
+			i = idx
+			break
+		}
+	}
+
+	if i == -1 {
+		return nil
+	}
+
+	// determine next turn player, skip nil values
+	for j := i + 1; j < len(t.players); j++ {
+		if t.players[j] != nil {
+			return t.players[j]
+		}
+	}
+	return nil
 }
 
 func (t *Table) drawCard() deck.Card {

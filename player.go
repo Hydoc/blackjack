@@ -49,6 +49,14 @@ func (p *Player) hasBlackJack() bool {
 	return p.hands.hasBlackJack()
 }
 
+func (p *Player) busted() bool {
+	return p.hands.busted()
+}
+
+func (p *Player) isDone() bool {
+	return p.hands.isDone()
+}
+
 // NewPlayer creates a pointer to the new player with the passed configuration.
 func NewPlayer(wallet int, opts ...func(p *Player) *Player) *Player {
 	p := &Player{

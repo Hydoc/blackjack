@@ -49,6 +49,14 @@ func (h *hands) canDoubleDown() bool {
 	return h.active.canDoubleDown()
 }
 
+func (h *hands) busted() bool {
+	return h.active.busted()
+}
+
+func (h *hands) isDone() bool {
+	return h.active == nil
+}
+
 type hand struct {
 	cards    []deck.Card
 	isActive bool
@@ -99,6 +107,10 @@ func (h *hand) sum() int {
 
 func (h *hand) canDoubleDown() bool {
 	return len(h.cards) == 2 && slices.Contains([]int{9, 10, 11}, h.sum())
+}
+
+func (h *hand) busted() bool {
+	return h.sum() > 21
 }
 
 func newHand(cards []deck.Card, isActive bool, opts ...func(*hand) *hand) *hand {
