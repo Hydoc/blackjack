@@ -13,12 +13,19 @@ const (
 type Player struct {
 	Name string
 
+	wallet int
+
 	hands *hands
 }
 
 // CanSplit returns a bool whether the player can split.
 func (p *Player) CanSplit() bool {
-	return p.hands.canSplit()
+	return p.canBetTheSameAmountAgain() && p.hands.canSplit()
+}
+
+// CanDoubleDown returns a bool whether the player can double down.
+func (p *Player) CanDoubleDown() bool {
+	return p.canBetTheSameAmountAgain() && p.hands.canDoubleDown()
 }
 
 // Hit adds a card to the player's active hand.
@@ -34,16 +41,20 @@ func (p *Player) Stand() {
 	p.hands.stand()
 }
 
+func (p *Player) canBetTheSameAmountAgain() bool {
+	return p.hands.active.bet <= p.wallet
+}
+
 func (p *Player) hasBlackJack() bool {
 	return p.hands.hasBlackJack()
 }
 
 // NewPlayer creates a pointer to the new player with the passed configuration.
-func NewPlayer(cards []deck.Card, bet int, opts ...func(p *Player) *Player) *Player {
+func NewPlayer(wallet int, opts ...func(p *Player) *Player) *Player {
 	p := &Player{
-		hands: newHands(cards, withBet(bet)),
+		hands:  newHands(),
+		wallet: wallet,
 	}
-
 	for _, opt := range opts {
 		opt(p)
 	}

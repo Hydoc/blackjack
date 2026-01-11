@@ -8,22 +8,83 @@ import (
 )
 
 func TestNewPlayer(t *testing.T) {
-	cards := make([]deck.Card, 0)
-	bet := 200
+	wallet := 200
 	p := NewPlayer(
-		cards,
-		bet,
+		wallet,
 		WithName("Test"),
 	)
-
-	wantHands := newHands(cards, withBet(bet))
 
 	if p.Name != "Test" {
 		t.Errorf("name should be Test")
 	}
 
-	if !reflect.DeepEqual(wantHands, p.hands) {
-		t.Errorf("want %#v, got %#v", wantHands, p.hands)
+	if p.wallet != wallet {
+		t.Errorf("wallet should be %d", wallet)
+	}
+}
+
+func TestPlayer_CanDoubleDown(t *testing.T) {
+	tests := []struct {
+		name   string
+		player *Player
+		want   bool
+	}{
+		{
+			name: "can double down",
+			player: &Player{
+				wallet: 300,
+				hands: &hands{
+					active: &hand{
+						bet: 200,
+						cards: []deck.Card{
+							{Rank: deck.Seven, Suit: deck.Heart},
+							{Rank: deck.Two, Suit: deck.Club},
+						},
+					},
+				},
+			},
+			want: true,
+		},
+		{
+			name: "not possible due to wallet",
+			player: &Player{
+				wallet: 199,
+				hands: &hands{
+					active: &hand{
+						bet: 200,
+						cards: []deck.Card{
+							{Rank: deck.Seven, Suit: deck.Heart},
+							{Rank: deck.Two, Suit: deck.Club},
+						},
+					},
+				},
+			},
+			want: false,
+		},
+		{
+			name: "not possible due to higher than allowed",
+			player: &Player{
+				wallet: 500,
+				hands: &hands{
+					active: &hand{
+						bet: 200,
+						cards: []deck.Card{
+							{Rank: deck.Eight, Suit: deck.Heart},
+							{Rank: deck.Ace, Suit: deck.Club},
+						},
+					},
+				},
+			},
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.player.CanDoubleDown(); got != tt.want {
+				t.Errorf("want %#v, got %#v", tt.want, got)
+			}
+		})
 	}
 }
 
@@ -36,8 +97,10 @@ func TestPlayer_CanSplit(t *testing.T) {
 		{
 			name: "can split",
 			player: &Player{
+				wallet: 200,
 				hands: &hands{
 					active: &hand{
+						bet: 200,
 						cards: []deck.Card{
 							{Rank: deck.Ten, Suit: deck.Spade},
 							{Rank: deck.Ten, Suit: deck.Heart},
@@ -70,6 +133,22 @@ func TestPlayer_CanSplit(t *testing.T) {
 							{Rank: deck.Two, Suit: deck.Spade},
 							{Rank: deck.Two, Suit: deck.Heart},
 							{Rank: deck.Three, Suit: deck.Heart},
+						},
+					},
+				},
+			},
+			want: false,
+		},
+		{
+			name: "can not split due to wallet",
+			player: &Player{
+				wallet: 199,
+				hands: &hands{
+					active: &hand{
+						bet: 200,
+						cards: []deck.Card{
+							{Rank: deck.Two, Suit: deck.Spade},
+							{Rank: deck.Two, Suit: deck.Heart},
 						},
 					},
 				},

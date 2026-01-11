@@ -37,31 +37,31 @@ func TestTable_Join(t *testing.T) {
 	}{
 		{
 			name:           "with empty slice of players at table",
-			playerToJoin:   NewPlayer(make([]deck.Card, 0), 0, WithName("Player1")),
+			playerToJoin:   NewPlayer(0, WithName("Player1")),
 			playersAtTable: [7]*Player{},
 			wantIndex:      0,
 		},
 		{
 			name:         "with players at table",
-			playerToJoin: NewPlayer(make([]deck.Card, 0), 0, WithName("Player4")),
+			playerToJoin: NewPlayer(0, WithName("Player4")),
 			playersAtTable: [7]*Player{
-				NewPlayer(make([]deck.Card, 0), 0, WithName("Player1")),
-				NewPlayer(make([]deck.Card, 0), 0, WithName("Player2")),
-				NewPlayer(make([]deck.Card, 0), 0, WithName("Player3")),
+				NewPlayer(0, WithName("Player1")),
+				NewPlayer(0, WithName("Player2")),
+				NewPlayer(0, WithName("Player3")),
 			},
 			wantIndex: 3,
 		},
 		{
 			name:         "error when table is full",
-			playerToJoin: NewPlayer(make([]deck.Card, 0), 0, WithName("Player8")),
+			playerToJoin: NewPlayer(0, WithName("Player8")),
 			playersAtTable: [7]*Player{
-				NewPlayer(make([]deck.Card, 0), 0, WithName("Player1")),
-				NewPlayer(make([]deck.Card, 0), 0, WithName("Player2")),
-				NewPlayer(make([]deck.Card, 0), 0, WithName("Player3")),
-				NewPlayer(make([]deck.Card, 0), 0, WithName("Player4")),
-				NewPlayer(make([]deck.Card, 0), 0, WithName("Player5")),
-				NewPlayer(make([]deck.Card, 0), 0, WithName("Player6")),
-				NewPlayer(make([]deck.Card, 0), 0, WithName("Player7")),
+				NewPlayer(0, WithName("Player1")),
+				NewPlayer(0, WithName("Player2")),
+				NewPlayer(0, WithName("Player3")),
+				NewPlayer(0, WithName("Player4")),
+				NewPlayer(0, WithName("Player5")),
+				NewPlayer(0, WithName("Player6")),
+				NewPlayer(0, WithName("Player7")),
 			},
 			wantErr: ErrTableFull,
 		},
@@ -89,12 +89,12 @@ func TestTable_Join(t *testing.T) {
 }
 
 func TestTable_Start(t *testing.T) {
-	playerOne := NewPlayer(make([]deck.Card, 0), 0, WithName("Player1"))
+	playerOne := NewPlayer(0, WithName("Player1"))
 	wantPlayerOneCards := []deck.Card{
 		{Rank: deck.King, Suit: deck.Heart},
 		{Rank: deck.Ten, Suit: deck.Heart},
 	}
-	playerTwo := NewPlayer(make([]deck.Card, 0), 0, WithName("Player2"))
+	playerTwo := NewPlayer(0, WithName("Player2"))
 	wantPlayerTwoCards := []deck.Card{
 		{Rank: deck.Queen, Suit: deck.Heart},
 		{Rank: deck.Nine, Suit: deck.Heart},

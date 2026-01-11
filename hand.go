@@ -45,6 +45,10 @@ func (h *hands) canSplit() bool {
 	return h.active.canSplit()
 }
 
+func (h *hands) canDoubleDown() bool {
+	return h.active.canDoubleDown()
+}
+
 type hand struct {
 	cards    []deck.Card
 	isActive bool
@@ -93,6 +97,10 @@ func (h *hand) sum() int {
 	return sum
 }
 
+func (h *hand) canDoubleDown() bool {
+	return len(h.cards) == 2 && slices.Contains([]int{9, 10, 11}, h.sum())
+}
+
 func newHand(cards []deck.Card, isActive bool, opts ...func(*hand) *hand) *hand {
 	h := &hand{
 		cards:    cards,
@@ -116,8 +124,8 @@ func newSplitHands(first deck.Card, second deck.Card, previousBet int) *hands {
 	}
 }
 
-func newHands(cards []deck.Card, opts ...func(*hand) *hand) *hands {
-	first := newHand(cards, true, opts...)
+func newHands(opts ...func(*hand) *hand) *hands {
+	first := newHand(make([]deck.Card, 0), true, opts...)
 	return &hands{
 		mode:   normal,
 		first:  first,

@@ -13,7 +13,8 @@ func TestNewHands(t *testing.T) {
 		{Rank: deck.Ten, Suit: deck.Spade},
 		{Rank: deck.Two, Suit: deck.Heart},
 	}
-	h := newHands(cards, withBet(200))
+	h := newHands(withBet(200))
+	h.first.cards = cards
 
 	if h.mode != normal {
 		t.Errorf("want %#v, got %#v", normal, h.mode)
@@ -33,7 +34,8 @@ func TestHands_hit(t *testing.T) {
 		{Rank: deck.Ten, Suit: deck.Spade},
 		{Rank: deck.Two, Suit: deck.Heart},
 	}
-	h := newHands(cards)
+	h := newHands()
+	h.first.cards = cards
 	cardToHit := deck.Card{Rank: deck.Five, Suit: deck.Club}
 	want := append(append([]deck.Card{}, cards...), cardToHit)
 
