@@ -10,7 +10,7 @@ import (
 
 func Test_New(t *testing.T) {
 	table := New()
-	wantDealer := NewPlayer(make([]deck.Card, 0), 0, WithName("Dealer"))
+	wantDealer := newDealer()
 	wantPlayers := [7]*Player{}
 	wantDeckSize := 312
 
@@ -85,5 +85,56 @@ func TestTable_Join(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestTable_Start(t *testing.T) {
+	playerOne := NewPlayer(make([]deck.Card, 0), 0, WithName("Player1"))
+	wantPlayerOneCards := []deck.Card{
+		{Rank: deck.King, Suit: deck.Heart},
+		{Rank: deck.Ten, Suit: deck.Heart},
+	}
+	playerTwo := NewPlayer(make([]deck.Card, 0), 0, WithName("Player2"))
+	wantPlayerTwoCards := []deck.Card{
+		{Rank: deck.Queen, Suit: deck.Heart},
+		{Rank: deck.Nine, Suit: deck.Heart},
+	}
+
+	wantDealerCards := []deck.Card{
+		{Rank: deck.Jack, Suit: deck.Heart},
+		{Rank: deck.Eight, Suit: deck.Heart},
+	}
+
+	table := &Table{
+		dealer:  newDealer(),
+		players: [7]*Player{},
+		deck:    deck.New(),
+	}
+	err := table.Join(playerOne)
+	if err != nil {
+		t.Errorf("want nil, got %v", err)
+	}
+
+	err = table.Join(playerTwo)
+	if err != nil {
+		t.Errorf("want nil, got %v", err)
+	}
+
+	table.Start()
+
+	if len(table.deck) != 46 {
+		t.Errorf("want %d, got %d", 46, len(table.deck))
+	}
+
+	if !reflect.DeepEqual(table.players[0].hands.first.cards, wantPlayerOneCards) {
+		t.Errorf("want %#v, got %#v", wantPlayerOneCards, table.players[0].hands.first.cards)
+	}
+
+	if !reflect.DeepEqual(table.players[1].hands.first.cards, wantPlayerTwoCards) {
+		t.Errorf("want %#v, got %#v", wantPlayerOneCards, table.players[1].hands.first.cards)
+	}
+
+	if !reflect.DeepEqual(table.dealer.hand.cards, wantDealerCards) {
+		t.Errorf("want %#v, got %#v", wantDealerCards, table.dealer.hand.cards)
 	}
 }

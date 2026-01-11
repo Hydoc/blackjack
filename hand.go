@@ -19,7 +19,7 @@ type hands struct {
 }
 
 func (h *hands) hit(card deck.Card) {
-	h.active.cards = append(h.active.cards, card)
+	h.active.hit(card)
 }
 
 func (h *hands) stand() {
@@ -45,6 +45,10 @@ type hand struct {
 	cards    []deck.Card
 	isActive bool
 	bet      int
+}
+
+func (h *hand) hit(card deck.Card) {
+	h.cards = append(h.cards, card)
 }
 
 func (h *hand) split() (*hands, error) {
