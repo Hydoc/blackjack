@@ -88,57 +88,231 @@ func TestTable_Join(t *testing.T) {
 	}
 }
 
+func TestTable_Leave(t *testing.T) {
+	tests := []struct {
+		name  string
+		setup func() (*Table, *Player, [7]*Player)
+	}{
+		{
+			name: "leave correctly",
+			setup: func() (*Table, *Player, [7]*Player) {
+				firstPlayer := &Player{}
+				playerToLeave := &Player{}
+				thirdPlayer := &Player{}
+
+				wantPlayers := [7]*Player{
+					firstPlayer,
+					nil,
+					thirdPlayer,
+				}
+
+				table := New()
+				table.Join(firstPlayer)
+				table.Join(playerToLeave)
+				table.Join(thirdPlayer)
+
+				return table, playerToLeave, wantPlayers
+			},
+		},
+		{
+			name: "do nothing for invalid player",
+			setup: func() (*Table, *Player, [7]*Player) {
+				firstPlayer := &Player{}
+				secondPlayer := &Player{}
+
+				wantPlayers := [7]*Player{
+					firstPlayer,
+					secondPlayer,
+				}
+
+				table := New()
+				table.Join(firstPlayer)
+				table.Join(secondPlayer)
+
+				return table, &Player{}, wantPlayers
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			table, playerToLeave, wantPlayers := tt.setup()
+
+			table.Leave(playerToLeave)
+
+			if got := table.players; !reflect.DeepEqual(got, wantPlayers) {
+				t.Errorf("want %#v, got %#v", wantPlayers, got)
+			}
+		})
+	}
+}
+
 func TestTable_Start(t *testing.T) {
-	playerOne := NewPlayer(0, WithName("Player1"))
-	wantPlayerOneCards := []deck.Card{
-		{Rank: deck.King, Suit: deck.Heart},
-		{Rank: deck.Ten, Suit: deck.Heart},
-	}
-	playerTwo := NewPlayer(0, WithName("Player2"))
-	wantPlayerTwoCards := []deck.Card{
-		{Rank: deck.Queen, Suit: deck.Heart},
-		{Rank: deck.Nine, Suit: deck.Heart},
-	}
+	t.Run("join two players and start", func(t *testing.T) {
+		playerOne := NewPlayer(0, WithName("Player1"))
+		wantPlayerOneCards := []deck.Card{
+			{Rank: deck.King, Suit: deck.Heart},
+			{Rank: deck.Ten, Suit: deck.Heart},
+		}
+		playerTwo := NewPlayer(0, WithName("Player2"))
+		wantPlayerTwoCards := []deck.Card{
+			{Rank: deck.Queen, Suit: deck.Heart},
+			{Rank: deck.Nine, Suit: deck.Heart},
+		}
 
-	wantDealerCards := []deck.Card{
-		{Rank: deck.Jack, Suit: deck.Heart},
-		{Rank: deck.Eight, Suit: deck.Heart},
-	}
+		wantDealerCards := []deck.Card{
+			{Rank: deck.Jack, Suit: deck.Heart},
+			{Rank: deck.Eight, Suit: deck.Heart},
+		}
 
-	table := &Table{
-		dealer:  newDealer(),
-		players: [7]*Player{},
-		deck:    deck.New(),
-	}
-	err := table.Join(playerOne)
-	if err != nil {
-		t.Errorf("want nil, got %v", err)
-	}
+		table := &Table{
+			dealer:  newDealer(),
+			players: [7]*Player{},
+			deck:    deck.New(),
+		}
+		err := table.Join(playerOne)
+		if err != nil {
+			t.Errorf("want nil, got %v", err)
+		}
 
-	err = table.Join(playerTwo)
-	if err != nil {
-		t.Errorf("want nil, got %v", err)
-	}
+		err = table.Join(playerTwo)
+		if err != nil {
+			t.Errorf("want nil, got %v", err)
+		}
 
-	table.Start()
+		table.Start()
 
-	if len(table.deck) != 46 {
-		t.Errorf("want %d, got %d", 46, len(table.deck))
-	}
+		if len(table.deck) != 46 {
+			t.Errorf("want %d, got %d", 46, len(table.deck))
+		}
 
-	if !reflect.DeepEqual(table.turnPlayer, playerOne) {
-		t.Errorf("want %#v, got %#v", playerOne, table.turnPlayer)
-	}
+		if !table.InProgress() {
+			t.Errorf("table have the gameState inProgress")
+		}
 
-	if !reflect.DeepEqual(table.players[0].hands.first.cards, wantPlayerOneCards) {
-		t.Errorf("want %#v, got %#v", wantPlayerOneCards, table.players[0].hands.first.cards)
-	}
+		if !reflect.DeepEqual(table.turnPlayer, playerOne) {
+			t.Errorf("want %#v, got %#v", playerOne, table.turnPlayer)
+		}
 
-	if !reflect.DeepEqual(table.players[1].hands.first.cards, wantPlayerTwoCards) {
-		t.Errorf("want %#v, got %#v", wantPlayerOneCards, table.players[1].hands.first.cards)
-	}
+		if !reflect.DeepEqual(table.players[0].hands.first.cards, wantPlayerOneCards) {
+			t.Errorf("want %#v, got %#v", wantPlayerOneCards, table.players[0].hands.first.cards)
+		}
 
-	if !reflect.DeepEqual(table.dealer.hand.cards, wantDealerCards) {
-		t.Errorf("want %#v, got %#v", wantDealerCards, table.dealer.hand.cards)
-	}
+		if !reflect.DeepEqual(table.players[1].hands.first.cards, wantPlayerTwoCards) {
+			t.Errorf("want %#v, got %#v", wantPlayerOneCards, table.players[1].hands.first.cards)
+		}
+
+		if !reflect.DeepEqual(table.dealer.hand.cards, wantDealerCards) {
+			t.Errorf("want %#v, got %#v", wantDealerCards, table.dealer.hand.cards)
+		}
+	})
+
+	t.Run("join two players and start but the first has blackjack after dealing", func(t *testing.T) {
+		playerOne := NewPlayer(0, WithName("Player1"))
+		wantPlayerOneCards := []deck.Card{
+			{Rank: deck.Ace, Suit: deck.Heart},
+			{Rank: deck.Ten, Suit: deck.Heart},
+		}
+		playerTwo := NewPlayer(0, WithName("Player2"))
+		wantPlayerTwoCards := []deck.Card{
+			{Rank: deck.Queen, Suit: deck.Heart},
+			{Rank: deck.Nine, Suit: deck.Heart},
+		}
+
+		wantDealerCards := []deck.Card{
+			{Rank: deck.Jack, Suit: deck.Heart},
+			{Rank: deck.Eight, Suit: deck.Heart},
+		}
+
+		table := &Table{
+			dealer:  newDealer(),
+			players: [7]*Player{},
+			deck: []deck.Card{
+				{Rank: deck.Eight, Suit: deck.Heart},
+				{Rank: deck.Nine, Suit: deck.Heart},
+				{Rank: deck.Ten, Suit: deck.Heart},
+				{Rank: deck.Jack, Suit: deck.Heart},
+				{Rank: deck.Queen, Suit: deck.Heart},
+				{Rank: deck.Ace, Suit: deck.Heart},
+			},
+		}
+		err := table.Join(playerOne)
+		if err != nil {
+			t.Errorf("want nil, got %v", err)
+		}
+
+		err = table.Join(playerTwo)
+		if err != nil {
+			t.Errorf("want nil, got %v", err)
+		}
+
+		table.Start()
+
+		if !table.InProgress() {
+			t.Errorf("table have the gameState inProgress")
+		}
+
+		if !reflect.DeepEqual(table.turnPlayer, playerTwo) {
+			t.Errorf("want %#v, got %#v", playerTwo, table.turnPlayer)
+		}
+
+		if !reflect.DeepEqual(table.players[0].hands.first.cards, wantPlayerOneCards) {
+			t.Errorf("want %#v, got %#v", wantPlayerOneCards, table.players[0].hands.first.cards)
+		}
+
+		if !reflect.DeepEqual(table.players[1].hands.first.cards, wantPlayerTwoCards) {
+			t.Errorf("want %#v, got %#v", wantPlayerOneCards, table.players[1].hands.first.cards)
+		}
+
+		if !reflect.DeepEqual(table.dealer.hand.cards, wantDealerCards) {
+			t.Errorf("want %#v, got %#v", wantDealerCards, table.dealer.hand.cards)
+		}
+	})
+
+	t.Run("join one player and he has blackjack after dealing", func(t *testing.T) {
+		playerOne := NewPlayer(0, WithName("Player1"))
+		wantPlayerOneCards := []deck.Card{
+			{Rank: deck.Ace, Suit: deck.Heart},
+			{Rank: deck.Ten, Suit: deck.Heart},
+		}
+
+		wantDealerCards := []deck.Card{
+			{Rank: deck.Jack, Suit: deck.Heart},
+			{Rank: deck.Eight, Suit: deck.Heart},
+		}
+
+		table := &Table{
+			dealer:  newDealer(),
+			players: [7]*Player{},
+			deck: []deck.Card{
+				{Rank: deck.Eight, Suit: deck.Heart},
+				{Rank: deck.Ten, Suit: deck.Heart},
+				{Rank: deck.Jack, Suit: deck.Heart},
+				{Rank: deck.Ace, Suit: deck.Heart},
+			},
+		}
+		err := table.Join(playerOne)
+		if err != nil {
+			t.Errorf("want nil, got %v", err)
+		}
+
+		table.Start()
+
+		if !table.IsDone() {
+			t.Errorf("table have the gameState done")
+		}
+
+		if table.turnPlayer != nil {
+			t.Errorf("want %#v, got %#v", nil, table.turnPlayer)
+		}
+
+		if !reflect.DeepEqual(table.players[0].hands.first.cards, wantPlayerOneCards) {
+			t.Errorf("want %#v, got %#v", wantPlayerOneCards, table.players[0].hands.first.cards)
+		}
+
+		if !reflect.DeepEqual(table.dealer.hand.cards, wantDealerCards) {
+			t.Errorf("want %#v, got %#v", wantDealerCards, table.dealer.hand.cards)
+
+		}
+	})
 }
