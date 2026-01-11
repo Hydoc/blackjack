@@ -251,3 +251,48 @@ func TestHand_sum(t *testing.T) {
 		})
 	}
 }
+
+func TestHand_hasBlackJack(t *testing.T) {
+	tests := []struct {
+		name  string
+		cards []deck.Card
+		want  bool
+	}{
+		{
+			name: "has black jack",
+			cards: []deck.Card{
+				{Rank: deck.Ten, Suit: deck.Spade},
+				{Rank: deck.Ace, Suit: deck.Heart},
+			},
+			want: true,
+		},
+		{
+			name: "has not black jack",
+			cards: []deck.Card{
+				{Rank: deck.Ten, Suit: deck.Spade},
+				{Rank: deck.Ten, Suit: deck.Heart},
+			},
+			want: false,
+		},
+		{
+			name: "21 but with three cards",
+			cards: []deck.Card{
+				{Rank: deck.Ten, Suit: deck.Spade},
+				{Rank: deck.Nine, Suit: deck.Heart},
+				{Rank: deck.Two, Suit: deck.Heart},
+			},
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := &hand{
+				cards: tt.cards,
+			}
+			if got := h.hasBlackJack(); got != tt.want {
+				t.Errorf("want %#v, got %#v", tt.want, got)
+			}
+		})
+	}
+}

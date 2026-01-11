@@ -12,29 +12,37 @@ var (
 
 // Table represents a blackjack table.
 type Table struct {
-	dealer          *dealer
-	players         [7]*Player
-	deck            []deck.Card
-	turnPlayerIndex int
+	dealer     *dealer
+	players    [7]*Player
+	deck       []deck.Card
+	turnPlayer *Player
 }
 
 // Start starts the round at the table by dealing everyone two cards.
-func (t *Table) Start() {
+// After dealing the cards it checks if any of the players has black jack.
+func (t *Table) Start() error {
 	for range 2 {
 		for _, p := range t.players {
 			if p == nil {
 				continue
 			}
-
-			cards, remaining := deck.Draw(1)(t.deck)
-			t.deck = remaining
-			p.Hit(cards[0])
+			card := t.drawCard()
+			p.Hit(card)
 		}
 
-		cards, remaining := deck.Draw(1)(t.deck)
-		t.deck = remaining
-		t.dealer.Hit(cards[0])
+		card := t.drawCard()
+		t.dealer.Hit(card)
 	}
+
+	// TODO end round somehow when no turnPlayer can be determined
+	for _, p := range t.players {
+		if p != nil && !p.hasBlackJack() {
+			t.turnPlayer = p
+			return nil
+		}
+	}
+
+	return nil
 }
 
 func (t *Table) Handle() error {
@@ -53,6 +61,12 @@ func (t *Table) Join(p *Player) error {
 	return ErrTableFull
 }
 
+func (t *Table) drawCard() deck.Card {
+	cards, remaining := deck.Draw(1)(t.deck)
+	t.deck = remaining
+	return cards[0]
+}
+
 // New create a pointer to Table with the default configuration like 6 shuffled decks and a maximum of 7 players allowed.
 // Dealer must stand on soft 17.
 func New() *Table {
@@ -63,6 +77,6 @@ func New() *Table {
 			deck.WithDecks(6),
 			deck.Shuffle,
 		),
-		turnPlayerIndex: 0,
+		turnPlayer: nil,
 	}
 }

@@ -126,6 +126,10 @@ func TestTable_Start(t *testing.T) {
 		t.Errorf("want %d, got %d", 46, len(table.deck))
 	}
 
+	if !reflect.DeepEqual(table.turnPlayer, playerOne) {
+		t.Errorf("want %#v, got %#v", playerOne, table.turnPlayer)
+	}
+
 	if !reflect.DeepEqual(table.players[0].hands.first.cards, wantPlayerOneCards) {
 		t.Errorf("want %#v, got %#v", wantPlayerOneCards, table.players[0].hands.first.cards)
 	}

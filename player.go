@@ -34,6 +34,10 @@ func (p *Player) Stand() {
 	p.hands.stand()
 }
 
+func (p *Player) hasBlackJack() bool {
+	return p.hands.hasBlackJack()
+}
+
 // NewPlayer creates a pointer to the new player with the passed configuration.
 func NewPlayer(cards []deck.Card, bet int, opts ...func(p *Player) *Player) *Player {
 	p := &Player{

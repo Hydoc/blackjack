@@ -18,6 +18,10 @@ type hands struct {
 	active *hand
 }
 
+func (h *hands) hasBlackJack() bool {
+	return h.active.hasBlackJack()
+}
+
 func (h *hands) hit(card deck.Card) {
 	h.active.hit(card)
 }
@@ -49,6 +53,10 @@ type hand struct {
 
 func (h *hand) hit(card deck.Card) {
 	h.cards = append(h.cards, card)
+}
+
+func (h *hand) hasBlackJack() bool {
+	return len(h.cards) == 2 && h.sum() == 21
 }
 
 func (h *hand) split() (*hands, error) {
