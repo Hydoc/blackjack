@@ -109,6 +109,8 @@ func (t *Table) drawCard() deck.Card {
 
 // New create a pointer to Table with the default configuration like 6 shuffled decks and a maximum of 7 players allowed.
 // Dealer must stand on soft 17.
+// No peek.
+// Double Down only allowed on 9 to 11.
 func New() *Table {
 	return &Table{
 		dealer:  newDealer(),
