@@ -365,6 +365,10 @@ func TestTable_nextPlayer(t *testing.T) {
 					players: [7]*Player{
 						firstPlayer,
 						secondPlayer,
+						nil,
+						nil,
+						nil,
+						nil,
 						thirdPlayer,
 					},
 					turnPlayer: thirdPlayer,
@@ -406,4 +410,91 @@ func TestTable_nextPlayer(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestTable_Hit(t *testing.T) {
+	t.Run("return ErrNoTurnPlayer when turnPlayer = nil", func(t *testing.T) {
+		table := &Table{}
+
+		err := table.Hit()
+		if !errors.Is(err, ErrNoTurnPlayer) {
+			t.Errorf("want %#v, got %#v", ErrNoTurnPlayer, err)
+		}
+	})
+
+	t.Run("hit normally", func(t *testing.T) {
+		player := NewPlayer(200)
+		table := &Table{
+			turnPlayer: player,
+			deck:       deck.New(),
+		}
+
+		err := table.Hit()
+		if err != nil {
+			t.Errorf("should not throw")
+		}
+
+		if len(player.hands.active.cards) != 1 {
+			t.Errorf("player should have a card")
+		}
+	})
+
+	t.Run("stand and end after player busted for one player", func(t *testing.T) {
+		cards := deck.New()
+		player := NewPlayer(200)
+
+		table := &Table{
+			turnPlayer: player,
+			deck:       cards,
+		}
+
+		for range 3 {
+			err := table.Hit()
+			if err != nil {
+				t.Errorf("should not throw")
+			}
+		}
+
+		if player.hands.active != nil {
+			t.Errorf("player should not have an active hand")
+		}
+
+		if table.gameState != done {
+			t.Errorf("game state should be done")
+		}
+	})
+
+	t.Run("stand and set next player after player busted with two players at the table", func(t *testing.T) {
+		cards := deck.New()
+		playerOne := NewPlayer(200)
+		playerTwo := NewPlayer(200)
+
+		table := &Table{
+			turnPlayer: playerOne,
+			players: [7]*Player{
+				playerOne,
+				playerTwo,
+			},
+			deck: cards,
+		}
+
+		for range 3 {
+			err := table.Hit()
+			if err != nil {
+				t.Errorf("should not throw")
+			}
+		}
+
+		if playerOne.hands.active != nil {
+			t.Errorf("playerOne should not have an active hand")
+		}
+
+		if table.turnPlayer != playerTwo {
+			t.Errorf("playerTwo should be active")
+		}
+
+		if table.gameState != inProgress {
+			t.Errorf("game state should be inProgress")
+		}
+	})
 }
