@@ -81,7 +81,7 @@ func TestPlayer_CanDoubleDown(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.player.CanDoubleDown(); got != tt.want {
+			if got := tt.player.canDoubleDown(); got != tt.want {
 				t.Errorf("want %#v, got %#v", tt.want, got)
 			}
 		})
@@ -159,7 +159,7 @@ func TestPlayer_CanSplit(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.player.CanSplit(); got != tt.want {
+			if got := tt.player.canSplit(); got != tt.want {
 				t.Errorf("want %#v, got %#v", tt.want, got)
 			}
 		})
@@ -329,6 +329,87 @@ func TestPlayer_Halt(t *testing.T) {
 
 			if !reflect.DeepEqual(tt.wantSecondHand, tt.player.hands.second) {
 				t.Errorf("want %#v, got %#v", tt.wantSecondHand, tt.player.hands.second)
+			}
+		})
+	}
+}
+
+func TestPlayer_DoubleDown(t *testing.T) {
+	tests := []struct {
+		name       string
+		card       deck.Card
+		player     *Player
+		wantWallet int
+		wantErr    error
+	}{
+		{
+			name: "double down correctly",
+			card: deck.Card{Rank: deck.Eight, Suit: deck.Heart},
+			player: &Player{
+				wallet: 400,
+				hands: &hands{
+					active: &hand{
+						cards: []deck.Card{
+							{Rank: deck.Nine, Suit: deck.Club},
+							{Rank: deck.Two, Suit: deck.Heart},
+						},
+						isActive: true,
+						bet:      100,
+					},
+				},
+			},
+			wantWallet: 300,
+		},
+		{
+			name: "not double down when player cannot bet the same amount again",
+			card: deck.Card{Rank: deck.Eight, Suit: deck.Heart},
+			player: &Player{
+				wallet: 100,
+				hands: &hands{
+					active: &hand{
+						cards: []deck.Card{
+							{Rank: deck.Nine, Suit: deck.Club},
+							{Rank: deck.Two, Suit: deck.Heart},
+						},
+						isActive: true,
+						bet:      150,
+					},
+				},
+			},
+			wantWallet: 100,
+			wantErr:    ErrNotAllowed,
+		},
+		{
+			name: "not double down when not allowed because of the cards",
+			card: deck.Card{Rank: deck.Eight, Suit: deck.Heart},
+			player: &Player{
+				wallet: 500,
+				hands: &hands{
+					active: &hand{
+						cards: []deck.Card{
+							{Rank: deck.Nine, Suit: deck.Club},
+							{Rank: deck.Nine, Suit: deck.Heart},
+						},
+						isActive: true,
+						bet:      150,
+					},
+				},
+			},
+			wantWallet: 500,
+			wantErr:    ErrNotAllowed,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.player.DoubleDown(tt.card)
+
+			if !reflect.DeepEqual(err, tt.wantErr) {
+				t.Errorf("want err %#v, got %#v", tt.wantErr, err)
+			}
+
+			if tt.player.wallet != tt.wantWallet {
+				t.Errorf("want wallet %#v, got %#v", tt.wantWallet, tt.player.wallet)
 			}
 		})
 	}

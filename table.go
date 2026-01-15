@@ -70,6 +70,9 @@ func (t *Table) IsDone() bool {
 	return t.gameState == done
 }
 
+// Hit lets the turnPlayer hit a card. If the player busts after hitting with the current active hand it calls stand
+// automatically and changes, in case of a split, to the other hand. If there is no more hand to be played the
+// next player will be the turnPlayer.
 func (t *Table) Hit() error {
 	if t.turnPlayer == nil {
 		return ErrNoTurnPlayer
@@ -80,19 +83,41 @@ func (t *Table) Hit() error {
 	if t.turnPlayer.busted() {
 		t.turnPlayer.Stand()
 
-		if t.turnPlayer.isDone() {
-			next := t.nextPlayer()
-			if next == nil {
-				t.gameState = done
-				return nil
-			}
-			t.turnPlayer = next
-		}
+		t.nextIfDone()
 	}
 	return nil
 }
 
-// Join adds a player to the next nil value in the players slice.
+// Stand calls stand on the current turnPlayer and switches to the next hand in case of a split. If there is no more
+// hand to be played the next player will be the turnPlayer.
+func (t *Table) Stand() error {
+	if t.turnPlayer == nil {
+		return ErrNoTurnPlayer
+	}
+
+	t.turnPlayer.Stand()
+	t.nextIfDone()
+
+	return nil
+}
+
+func (t *Table) DoubleDown() error {
+	if t.turnPlayer == nil {
+		return ErrNoTurnPlayer
+	}
+
+	err := t.turnPlayer.DoubleDown(t.drawCard())
+	if err != nil {
+		return err
+	}
+
+	t.turnPlayer.Stand()
+	t.nextIfDone()
+
+	return nil
+}
+
+// Join adds a player to the nextIfDone nil value in the players slice.
 // It returns ErrTableFull when there is no space left.
 func (t *Table) Join(p *Player) error {
 	t.mu.Lock()
@@ -120,6 +145,20 @@ func (t *Table) Leave(p *Player) {
 	}
 }
 
+// changes the turnPlayer to the next one if the turnPlayer isDone (if no more hand is to be played)
+func (t *Table) nextIfDone() {
+	if t.turnPlayer.isDone() {
+		next := t.nextPlayer()
+		if next == nil {
+			t.gameState = done
+			return
+		}
+		t.turnPlayer = next
+	}
+}
+
+// determines the next player by looping through the players slice starting at the turnPlayer's index + 1.
+// If no next player was found it returns nil.
 func (t *Table) nextPlayer() *Player {
 	t.mu.Lock()
 	defer t.mu.Unlock()
@@ -151,6 +190,7 @@ func (t *Table) nextPlayer() *Player {
 	return nil
 }
 
+// draw a card from the deck off the Table and update the deck.
 func (t *Table) drawCard() deck.Card {
 	cards, remaining := deck.Draw(1)(t.deck)
 	t.deck = remaining

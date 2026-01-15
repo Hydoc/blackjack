@@ -312,7 +312,6 @@ func TestTable_Start(t *testing.T) {
 
 		if !reflect.DeepEqual(table.dealer.hand.cards, wantDealerCards) {
 			t.Errorf("want %#v, got %#v", wantDealerCards, table.dealer.hand.cards)
-
 		}
 	})
 }
@@ -495,6 +494,80 @@ func TestTable_Hit(t *testing.T) {
 
 		if table.gameState != inProgress {
 			t.Errorf("game state should be inProgress")
+		}
+	})
+}
+
+func TestTable_Stand(t *testing.T) {
+	t.Run("stand for one player and end", func(t *testing.T) {
+		table := &Table{
+			dealer: newDealer(),
+			deck:   deck.New(),
+		}
+
+		player := NewPlayer(200)
+		err := table.Join(player)
+
+		if err != nil {
+			t.Errorf("wanted nil err")
+		}
+
+		table.Start()
+
+		err = table.Stand()
+
+		if err != nil {
+			t.Errorf("want nil err")
+		}
+
+		if !table.IsDone() {
+			t.Errorf("table should be done")
+		}
+	})
+
+	t.Run("stand one player in a two player game", func(t *testing.T) {
+		table := &Table{
+			dealer: newDealer(),
+			deck:   deck.New(),
+		}
+
+		playerOne := NewPlayer(200, WithName("One"))
+		playerTwo := NewPlayer(400, WithName("Two"))
+
+		err := table.Join(playerOne)
+		if err != nil {
+			t.Errorf("wanted nil err")
+		}
+
+		err = table.Join(playerTwo)
+		if err != nil {
+			t.Errorf("wanted nil err")
+		}
+
+		table.Start()
+
+		err = table.Stand()
+
+		if err != nil {
+			t.Errorf("want nil err")
+		}
+
+		if !table.InProgress() {
+			t.Errorf("table should be in progress")
+		}
+
+		if table.turnPlayer != playerTwo {
+			t.Errorf("wanted playerTwo to be the turnPlayer")
+		}
+	})
+
+	t.Run("err when no turnPlayer", func(t *testing.T) {
+		table := &Table{}
+
+		err := table.Stand()
+
+		if !errors.Is(err, ErrNoTurnPlayer) {
+			t.Errorf("want %#v, got %#v", ErrNoTurnPlayer, err)
 		}
 	})
 }

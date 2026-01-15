@@ -159,6 +159,54 @@ func TestHands_canSplit(t *testing.T) {
 	}
 }
 
+func TestHands_doubleDown(t *testing.T) {
+	tests := []struct {
+		name      string
+		card      deck.Card
+		hands     *hands
+		wantBet   int
+		wantCards []deck.Card
+	}{
+		{
+			name: "double down correctly",
+			card: deck.Card{
+				Rank: deck.Ten,
+				Suit: deck.Club,
+			},
+			hands: &hands{
+				active: &hand{
+					bet:      100,
+					isActive: true,
+					cards: []deck.Card{
+						{Rank: deck.Nine, Suit: deck.Club},
+						{Rank: deck.Two, Suit: deck.Heart},
+					},
+				},
+			},
+			wantBet: 200,
+			wantCards: []deck.Card{
+				{Rank: deck.Nine, Suit: deck.Club},
+				{Rank: deck.Two, Suit: deck.Heart},
+				{Rank: deck.Ten, Suit: deck.Club},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.hands.doubleDown(tt.card)
+
+			if !reflect.DeepEqual(tt.wantCards, tt.hands.active.cards) {
+				t.Errorf("want %#v, got %#v", tt.wantCards, tt.hands.active.cards)
+			}
+
+			if tt.wantBet != tt.hands.active.bet {
+				t.Errorf("want %#v, got %#v", tt.wantBet, tt.hands.active.bet)
+			}
+		})
+	}
+}
+
 func TestHand_split(t *testing.T) {
 	tests := []struct {
 		name      string
@@ -190,7 +238,7 @@ func TestHand_split(t *testing.T) {
 				},
 				bet: 100,
 			},
-			wantErr: ErrSplitNotAllowed,
+			wantErr: ErrNotAllowed,
 		},
 	}
 
@@ -294,6 +342,52 @@ func TestHand_hasBlackJack(t *testing.T) {
 			}
 			if got := h.hasBlackJack(); got != tt.want {
 				t.Errorf("want %#v, got %#v", tt.want, got)
+			}
+		})
+	}
+}
+
+func TestHand_doubleDown(t *testing.T) {
+	tests := []struct {
+		name      string
+		card      deck.Card
+		hand      *hand
+		wantBet   int
+		wantCards []deck.Card
+	}{
+		{
+			name: "double down correctly",
+			card: deck.Card{
+				Rank: deck.Ten,
+				Suit: deck.Club,
+			},
+			hand: &hand{
+				cards: []deck.Card{
+					{Rank: deck.Nine, Suit: deck.Club},
+					{Rank: deck.Two, Suit: deck.Heart},
+				},
+				isActive: true,
+				bet:      100,
+			},
+			wantBet: 200,
+			wantCards: []deck.Card{
+				{Rank: deck.Nine, Suit: deck.Club},
+				{Rank: deck.Two, Suit: deck.Heart},
+				{Rank: deck.Ten, Suit: deck.Club},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.hand.doubleDown(tt.card)
+
+			if !reflect.DeepEqual(tt.wantCards, tt.hand.cards) {
+				t.Errorf("want %#v, got %#v", tt.wantCards, tt.hand.cards)
+			}
+
+			if tt.wantBet != tt.hand.bet {
+				t.Errorf("want %#v, got %#v", tt.wantBet, tt.hand.bet)
 			}
 		})
 	}

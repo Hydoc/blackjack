@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	ErrSplitNotAllowed = errors.New("can't split")
+	ErrNotAllowed = errors.New("not allowed")
 )
 
 type hands struct {
@@ -24,6 +24,10 @@ func (h *hands) hasBlackJack() bool {
 
 func (h *hands) hit(card deck.Card) {
 	h.active.hit(card)
+}
+
+func (h *hands) doubleDown(card deck.Card) {
+	h.active.doubleDown(card)
 }
 
 func (h *hands) stand() {
@@ -67,13 +71,18 @@ func (h *hand) hit(card deck.Card) {
 	h.cards = append(h.cards, card)
 }
 
+func (h *hand) doubleDown(card deck.Card) {
+	h.hit(card)
+	h.bet += h.bet
+}
+
 func (h *hand) hasBlackJack() bool {
 	return len(h.cards) == 2 && h.sum() == 21
 }
 
 func (h *hand) split() (*hands, error) {
 	if !h.canSplit() {
-		return nil, ErrSplitNotAllowed
+		return nil, ErrNotAllowed
 	}
 
 	return newSplitHands(h.cards[0], h.cards[1], h.bet), nil

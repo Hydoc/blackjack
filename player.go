@@ -18,14 +18,15 @@ type Player struct {
 	hands *hands
 }
 
-// CanSplit returns a bool whether the player can split.
-func (p *Player) CanSplit() bool {
-	return p.canBetTheSameAmountAgain() && p.hands.canSplit()
-}
+func (p *Player) DoubleDown(card deck.Card) error {
+	if !p.canDoubleDown() {
+		return ErrNotAllowed
+	}
 
-// CanDoubleDown returns a bool whether the player can double down.
-func (p *Player) CanDoubleDown() bool {
-	return p.canBetTheSameAmountAgain() && p.hands.canDoubleDown()
+	p.wallet -= p.hands.active.bet
+	p.hands.doubleDown(card)
+
+	return nil
 }
 
 // Hit adds a card to the player's active hand.
@@ -39,6 +40,16 @@ func (p *Player) Hit(card deck.Card) {
 // Calling Stand again on the second hand ends the split turn.
 func (p *Player) Stand() {
 	p.hands.stand()
+}
+
+// canSplit returns a bool whether the player can split.
+func (p *Player) canSplit() bool {
+	return p.canBetTheSameAmountAgain() && p.hands.canSplit()
+}
+
+// canDoubleDown returns a bool whether the player can double down.
+func (p *Player) canDoubleDown() bool {
+	return p.canBetTheSameAmountAgain() && p.hands.canDoubleDown()
 }
 
 func (p *Player) canBetTheSameAmountAgain() bool {
