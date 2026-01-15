@@ -150,6 +150,7 @@ func (t *Table) nextIfDone() {
 	if t.turnPlayer.isDone() {
 		next := t.nextPlayer()
 		if next == nil {
+			t.turnPlayer = nil
 			t.gameState = done
 			return
 		}
