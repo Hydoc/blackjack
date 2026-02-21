@@ -19,7 +19,7 @@ func Test_New(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(wantDealer, table.dealer) {
-		t.Errorf("want dealer %v, got %v", wantDealer, table.dealer)
+		t.Errorf("want Dealer %v, got %v", wantDealer, table.dealer)
 	}
 
 	if !reflect.DeepEqual(wantPlayers, table.players) {

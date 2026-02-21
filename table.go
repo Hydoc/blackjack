@@ -20,15 +20,22 @@ var (
 )
 
 // Table represents a blackjack table. It holds everything relevant for the game.
-// The game state, players, deck, turn player and dealer
+// The game state, players, deck, turn player and Dealer
 type Table struct {
 	mu sync.Mutex
 
 	gameState  GameState
-	dealer     *dealer
+	dealer     *Dealer
 	players    [7]*Player
 	deck       []deck.Card
 	turnPlayer *Player
+}
+
+type State struct {
+	GameState  GameState
+	Dealer     *Dealer
+	Players    [7]*Player
+	TurnPlayer *Player
 }
 
 // Start starts the round at the table by dealing everyone two cards.
@@ -45,7 +52,7 @@ func (t *Table) Start() {
 		}
 
 		card := t.drawCard()
-		t.dealer.Hit(card)
+		t.dealer.hit(card)
 	}
 
 	for _, p := range t.players {
@@ -142,6 +149,15 @@ func (t *Table) Leave(p *Player) {
 			t.players[i] = nil
 			return
 		}
+	}
+}
+
+func (t *Table) State() State {
+	return State{
+		GameState:  t.gameState,
+		Dealer:     t.dealer,
+		Players:    t.players,
+		TurnPlayer: t.turnPlayer,
 	}
 }
 
