@@ -58,7 +58,3 @@ func printDealer(d *blackjack.Dealer, onlyFirstCard bool) {
 		return
 	}
 }
-
-func printPlayer(p *blackjack.Player) {
-
-}
